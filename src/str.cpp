@@ -9,24 +9,24 @@ String::String()
     data_[0] = '\0';
 }
 
-String:: ~String()
+String::~String()
 {
-    delete [] data_;
+    delete[] data_;
 }
 
-String:: String(const String& other)
+String::String(const String& other)
 {
     size_ = other.size_;
     capacity_ = other.capacity_;
-    if(capacity_ == 0)
+    if (capacity_ == 0)
     {
         capacity_ = 1;
 
     }
     
-    data_ = new char[capacity_+1];
+    data_ = new char[capacity_ + 1];
 
-    for(size_t i =0;i<size_;i++)
+    for (std::size_t i = 0; i < size_; ++i)
     {
         data_[i] = other.data_[i];
     }

@@ -4,6 +4,7 @@
 class String
 {
 public:
+    String();
     String(const String& other);
     String(String&& other) noexcept;
     ~String();
