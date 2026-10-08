@@ -1,4 +1,8 @@
 #include "string.h"
+#include <cctype>
+#include <limits>
+#include <ostream>
+#include <stdexcept>
 
 String::String()
 {
@@ -26,7 +30,7 @@ String::String(const String& other)
     
     data_ = new char[capacity_ + 1];
 
-    for (std::size_t i = 0; i < size_; ++i)
+    for (std::size_t i = 0; i < size_; i++)
     {
         data_[i] = other.data_[i];
     }
@@ -72,48 +76,58 @@ String& String::operator=(String other)
     return *this;
 }
 
-String(const char* text)
+std::size_t String::size() const noexcept
 {
-    if(!text)
-    {
-        thorw std::invalid_argument("text is null ptr");
-        size_ = 0;
-        while(text[size_]!='\0')
-        {
-            size_++;
-        }
-        capacity_ = size_ == 0 ? 1 : size_;
-        data_ = new char[capacity_+1];
-
-        for(std::size_t i =0;i<size_;i++)
-        {
-            data_[i] = text[i];
-        }
-        data_[size_]='\0';
-    }
+    return size_;
 }
 
-void push_back(char c)
+std::size_t String::capacity() const noexcept
 {
-     if (text == nullptr)
+    return capacity_;
+}
+
+bool String::empty() const noexcept
+{
+    return size_ == 0;
+}
+
+const char* String::c_str() const noexcept
+{
+    return data_ == nullptr ? "" : data_;
+}
+
+String::String(const char* text)
+{
+    if (text == nullptr)
     {
         throw std::invalid_argument("text is nullptr");
     }
 
-    String copy(text);
-
-    for (std::size_t i = 0; i < copy.size_; ++i)
+    while (text[size_] != '\0')
     {
-        push_back(copy.data_[i]);
+        size_++;
     }
-}
-void String::append(const char* text)
-{
-    if(size_ == capacity_)
+    capacity_ = size_ == 0 ? 1 : size_;
+    data_ = new char[capacity_ + 1];
+
+    for (std::size_t i = 0; i < size_; i++)
     {
+        data_[i] = text[i];
+    }
+    data_[size_] = '\0';
+}
+
+void String::push_back(char c)
+{
+    if (size_ == capacity_)
+    {
+        if (capacity_ > (std::numeric_limits<std::size_t>::max() - 1) / 2)
+        {
+            throw std::length_error("String is too large");
+        }
         std::size_t new_capacity = capacity_ == 0 ? 1 : capacity_ * 2;
         char* new_data = new char[new_capacity + 1];
-         for (std::size_t i = 0; i < size_; ++i)
+        for (std::size_t i = 0; i < size_; i++)
         {
             new_data[i] = data_[i];
         }
@@ -122,11 +136,29 @@ void String::append(const char* text)
         capacity_ = new_capacity;
     }
 
-
+    data_[size_] = c;
+    size_++;
+    data_[size_] = '\0';
 }
+
+void String::append(const char* text)
+{
+    String copy(text);
+
+    for (std::size_t i = 0; i < copy.size_; i++)
+    {
+        push_back(copy.data_[i]);
+    }
+}
+
 void String::append(const String& other)
 {
-    append(other.data_ == nullptr ? "" : other.data_);
+    String copy(other);
+
+    for (std::size_t i = 0; i < copy.size_; i++)
+    {
+        push_back(copy.data_[i]);
+    }
 }
 
 std::size_t String::find(const String& substr) const
@@ -143,7 +175,7 @@ std::size_t String::find(const String& substr) const
 
     std::size_t* prefix = new std::size_t[substr.size_]{};
 
-    for (std::size_t i = 1, j = 0; i < substr.size_; ++i)
+    for (std::size_t i = 1, j = 0; i < substr.size_; i++)
     {
         while (j > 0 && substr.data_[i] != substr.data_[j])
         {
@@ -157,7 +189,7 @@ std::size_t String::find(const String& substr) const
 
         prefix[i] = j;
     }
-    for (std::size_t i = 0, j = 0; i < size_; ++i)
+    for (std::size_t i = 0, j = 0; i < size_; i++)
     {
         while (j > 0 && data_[i] != substr.data_[j])
         {
@@ -179,4 +211,69 @@ std::size_t String::find(const String& substr) const
 
     delete[] prefix;
     return npos;
+}
+
+void String::print(std::ostream& out) const
+{
+    for (std::size_t i = 0; i < size_; i++)
+    {
+        out.put(data_[i]);
+    }
+}
+
+String String::wrap(std::size_t width) const
+{
+    if (width == 0)
+    {
+        throw std::invalid_argument("width must be positive");
+    }
+
+    String result;
+    std::size_t i = 0;
+    std::size_t line_size = 0;
+
+    while (i < size_)
+    {
+        while (i < size_ && std::isspace(static_cast<unsigned char>(data_[i])))
+        {
+            i++;
+        }
+
+        std::size_t start = i;
+
+        while (i < size_ && !std::isspace(static_cast<unsigned char>(data_[i])))
+        {
+            i++;
+        }
+
+        std::size_t word_size = i - start;
+
+        if (word_size == 0)
+        {
+            break;
+        }
+
+        if (line_size > 0)
+        {
+            if (line_size >= width || word_size > width - line_size - 1)
+            {
+                result.push_back('\n');
+                line_size = 0;
+            }
+            else
+            {
+                result.push_back(' ');
+                line_size++;
+            }
+        }
+
+        for (std::size_t j = start; j < i; j++)
+        {
+            result.push_back(data_[j]);
+        }
+
+        line_size += word_size;
+    }
+
+    return result;
 }
