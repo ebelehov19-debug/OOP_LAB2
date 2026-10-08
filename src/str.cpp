@@ -18,7 +18,7 @@ String::~String()
     delete[] data_;
 }
 
-String::String(const String& other)
+String::String(const String& other)//копиров
 {
     size_ = other.size_;
     capacity_ = other.capacity_;
@@ -38,7 +38,8 @@ String::String(const String& other)
     data_[size_] = '\0';
 }
 
-String::String(String&& other) noexcept
+
+String::String(String&& other) noexcept //перемещение 
 {
     data_ = other.data_;
     size_ = other.size_;
@@ -70,7 +71,7 @@ void String::swap(String& other) noexcept
     capacity_ ^= other.capacity_;
 }
 
-String& String::operator=(String other)
+String& String::operator=(String other)// rкопирование и перемещение 
 {
     swap(other);
     return *this;
