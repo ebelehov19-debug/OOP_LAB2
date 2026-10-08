@@ -172,7 +172,7 @@ int main()
                     break;
 
                 case 12:
-                    first.swap(second);
+                    first = second;
                     std::cout << "Строки обменены.\n";
                     break;
 
